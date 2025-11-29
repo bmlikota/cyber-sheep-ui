@@ -20,4 +20,24 @@ export class NewsCard {
   get confidenceLabel(): string {
     return `${Math.round(this.news.confidenceScore * 100)}%`;
   }
+
+  get riskLevel(): 'high' | 'medium' | 'low' {
+    const rel = this.news.relevanceScore;
+    const conf = this.news.confidenceScore;
+
+    if (rel >= 0.9 && conf >= 0.85) return 'high';
+    if (rel >= 0.7 && conf >= 0.6) return 'medium';
+    return 'low';
+  }
+
+  get riskLabel(): string {
+    switch (this.riskLevel) {
+      case 'high':
+        return 'High priority';
+      case 'medium':
+        return 'Medium priority';
+      default:
+        return 'Low priority';
+    }
+  }
 }
