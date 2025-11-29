@@ -4,12 +4,12 @@
     <p>AI‑curated cybersecurity news from The Hacker News.</p>
   </header>
 
-  @if (loading) {
+  @if (loading()) {
     <p class="dashboard__loading">Loading latest news…</p>
   } @else {
     <div class="dashboard__list">
-      @for (item of news$ | async; track item.id) {
-        <app-news-card [news]="item" />
+      @for (item of news(); track item.id) {
+        <app-news-card [news]="item"></app-news-card>
       }
     </div>
   }
