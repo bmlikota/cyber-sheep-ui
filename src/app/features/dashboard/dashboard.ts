@@ -4,6 +4,8 @@ import { News } from '../../core/models/news';
 import { NewsCard } from '../news-card/news-card';
 import { PreferencesService } from '../../core/services/preferences.service';
 import { RouterLink } from '@angular/router';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-dashboard',
@@ -21,6 +23,8 @@ export class Dashboard implements OnInit {
 
   // NEW: search term
   searchTerm = signal('');
+
+  private readonly searchInput$ = new Subject<string>();
 
   resultsStats = computed(() => {
     const total = this.news().length;
@@ -71,6 +75,16 @@ export class Dashboard implements OnInit {
     });
   });
 
+  constructor() {
+    this.searchInput$
+      .pipe(
+        debounceTime(400),        // wait 400ms after last keypress
+        distinctUntilChanged(),   // ignore same value
+      )
+      .subscribe(value => {
+        this.handleSearch(value);
+      });
+  }
 
   ngOnInit(): void {
     this.newsService.getNews().subscribe(items => {
@@ -78,4 +92,30 @@ export class Dashboard implements OnInit {
       this.loading.set(false);
     });
   }
+
+    onSearchChange(value: string): void {
+    this.searchTerm.set(value);
+    this.searchInput$.next(value);
+  }
+
+  private handleSearch(value: string): void {
+    const prompt = value.trim();
+
+    if (!prompt) {
+      // reload default list
+      this.loading.set(true);
+      this.newsService.getNews().subscribe(items => {
+        this.news.set(items);
+        this.loading.set(false);
+      });
+      return;
+    }
+
+    this.loading.set(true);
+    this.newsService.searchNews(prompt).subscribe(items => {
+      this.news.set(items);
+      this.loading.set(false);
+    });
+  }
+
 }

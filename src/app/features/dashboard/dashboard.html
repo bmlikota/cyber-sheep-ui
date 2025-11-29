@@ -19,13 +19,13 @@
 
     <div class="dashboard__filters-right">
         <input
-            type="search"
-            class="dashboard__search"
-            placeholder="Search in title, summary, categories…"
-            #searchBox
-            [value]="searchTerm()"
-            (input)="searchTerm.set(searchBox.value)"
-            />
+          type="search"
+          class="dashboard__search"
+          placeholder="Search in title, summary, categories…"
+          #searchBox
+          [value]="searchTerm()"
+          (input)="onSearchChange(searchBox.value)"
+        />
 
         <a routerLink="/onboarding" class="dashboard__filters-link">
         Adjust preferences

@@ -5,21 +5,21 @@ import { News } from '../models/news';
 import { map } from 'rxjs/operators';
 import { catchError } from 'rxjs/operators';
 
-const API_BASE_URL = 'https://charita-uncurried-everly.ngrok-free.dev';
+const API_BASE_URL = 'http://localhost:3000/api/articles';
 
-function mapArticleToNews(article: Article): News {
-  // Map categories, falling back to [] if undefined
+function mapArticleToNews(article: Article | ArticleWithRelevance): News {
   const categories = (article.categories ?? []) as News['categories'];
 
-  // Use backend summary or fallback to description/content
   const summary =
-    article.summary ||
+    (article as ArticleWithRelevance).summary ||
     article.description ||
     (article.content ? article.content.slice(0, 300) + '…' : '');
 
-  // Temporary scores: until backend exposes its own, we use simple defaults
-  const relevanceScore = 1;     // 1.0 for "plain list" results
-  const confidenceScore = 0.8;  // assume reasonably high confidence
+  const relBackend = (article as ArticleWithRelevance).relevance;
+  const relevanceScore =
+    typeof relBackend === 'number' ? relBackend / 100 : 1;
+
+  const confidenceScore = 0.8; // keep as-is for now, or derive later
 
   return {
     id: article.id,
@@ -60,6 +60,21 @@ interface ArticlesResponse {
 interface ArticleByIdResponse {
   success: boolean;
   article: Article;
+}
+
+interface ArticleWithRelevance extends Article {
+  similarity?: number | null;
+  relevance?: number | null; // backend returns 0–100
+  distance?: number | null;
+  matchedChunkIndex?: number | null;
+}
+
+interface SearchResponse {
+  success: boolean;
+  count: number;
+  limit: number;
+  similarityThreshold: number;
+  articles: ArticleWithRelevance[];
 }
 
 const MOCK_NEWS: News[] = [
@@ -122,7 +137,7 @@ export class NewsService {
     };
 
     return this.http
-      .get<ArticlesResponse>(`${API_BASE_URL}/api/articles`, { params })
+      .get<ArticlesResponse>(`${API_BASE_URL}`, { params })
       .pipe(
         map(res => (res.articles ?? []).map(mapArticleToNews)),
         // optional: fallback to mock data on error
@@ -135,12 +150,37 @@ export class NewsService {
       fetchFullContent: true, // for detail page show full content
     };
 
+   return this.http
+    .get<ArticleByIdResponse>(`${API_BASE_URL}/${encodeURIComponent(id)}`, { params })
+    .pipe(
+      map(res =>
+        res.success && res.article
+          ? mapArticleToNews(res.article)
+          : MOCK_NEWS.find(n => n.id === id),
+      ),
+      catchError(() => {
+        const fallback = MOCK_NEWS.find(n => n.id === id);
+        return of(fallback);
+      }),
+    );
+  }
+
+  searchNews(prompt: string, limit = 30): Observable<News[]> {
+    if (!prompt.trim()) {
+      return this.getNews();
+    }
+
+    const params = {
+      prompt,
+      limit,
+      similarityThreshold: 0.2, // tweak if needed
+    };
+
     return this.http
-      .get<ArticleByIdResponse>(`${API_BASE_URL}/api/articles/${encodeURIComponent(id)}`, { params })
+      .get<SearchResponse>(`${API_BASE_URL}/search`, { params })
       .pipe(
-        map(res => (res.success && res.article ? mapArticleToNews(res.article) : undefined)),
-        // optional fallback:
-        catchError(() => of(undefined)),
+        map(res => (res.articles ?? []).map(mapArticleToNews)),
+        catchError(() => of(MOCK_NEWS)), // optional fallback
       );
   }
 }
