@@ -28,6 +28,13 @@
       <p>{{ news.summary }}</p>
     </section>
 
+    <section class="trust">
+      <h2>Trust &amp; reliability</h2>
+      <p>
+        {{ getTrustLabel(news.confidenceScore) }}
+      </p>
+    </section>
+
     <section class="original-link">
       <a [href]="news.url" target="_blank" rel="noopener">
         Open original article

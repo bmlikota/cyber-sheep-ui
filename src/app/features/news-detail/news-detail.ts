@@ -26,4 +26,23 @@ export class NewsDetail {
       switchMap(id => this.newsService.getNewsById(id)),
     );
   }
+
+  getTrustLevel(conf: number): 'high' | 'medium' | 'low' {
+    if (conf >= 0.9) return 'high';
+    if (conf >= 0.7) return 'medium';
+    return 'low';
+  }
+
+  getTrustLabel(conf: number): string {
+    const level = this.getTrustLevel(conf);
+
+    switch (level) {
+      case 'high':
+        return 'Verified by AI with high confidence. Suitable for quick decisions.';
+      case 'medium':
+        return 'Moderate confidence. Consider cross-checking before acting.';
+      default:
+        return 'Low confidence. Treat as a lead and validate carefully.';
+    }
+  }
 }
