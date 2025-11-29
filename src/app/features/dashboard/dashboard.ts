@@ -19,6 +19,16 @@ export class Dashboard implements OnInit {
   news = signal<News[]>([]);
   loading = signal(true);
 
+  // NEW: search term
+  searchTerm = signal('');
+
+  resultsStats = computed(() => {
+    const total = this.news().length;
+    const visible = this.filteredNews().length;
+
+    return { total, visible };
+  });
+
   filtersSummary = computed(() => {
     const selected = this.prefs.selectedCategories();
     const minRel = Math.round(this.prefs.minRelevance() * 100);
@@ -40,19 +50,27 @@ export class Dashboard implements OnInit {
     const selected = this.prefs.selectedCategories();
     const minRel = this.prefs.minRelevance();
     const minConf = this.prefs.minConfidence();
+    const term = this.searchTerm().trim().toLowerCase();
 
     return items.filter(item => {
       const categoryMatch =
         selected.length === 0 ||
         item.categories.some(c => selected.includes(c as any));
 
-      return (
-        categoryMatch &&
+      const passesThresholds =
         item.relevanceScore >= minRel &&
-        item.confidenceScore >= minConf
-      );
+        item.confidenceScore >= minConf;
+
+      const passesSearch =
+        term.length === 0 ||
+        item.title.toLowerCase().includes(term) ||
+        item.summary.toLowerCase().includes(term) ||
+        item.categories.some(c => c.toLowerCase().includes(term));
+
+      return categoryMatch && passesThresholds && passesSearch;
     });
   });
+
 
   ngOnInit(): void {
     this.newsService.getNews().subscribe(items => {
