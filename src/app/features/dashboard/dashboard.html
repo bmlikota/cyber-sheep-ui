@@ -1,1 +1,16 @@
-<p>dashboard works!</p>
+<section class="dashboard">
+  <header class="dashboard__header">
+    <h1>Cyber Sentinel</h1>
+    <p>AI‑curated cybersecurity news from The Hacker News.</p>
+  </header>
+
+  @if (loading) {
+    <p class="dashboard__loading">Loading latest news…</p>
+  } @else {
+    <div class="dashboard__list">
+      @for (item of news$ | async; track item.id) {
+        <app-news-card [news]="item" />
+      }
+    </div>
+  }
+</section>
