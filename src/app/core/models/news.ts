@@ -9,4 +9,5 @@ export interface News {
   relevanceScore: number;    // 0–1 or 0–100
   confidenceScore: number;   // 0–1 or 0–100
   isRead?: boolean;
+  content?: string;          // FULL article text or long excerpt
 }

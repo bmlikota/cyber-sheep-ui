@@ -35,11 +35,19 @@
       </p>
     </section>
 
-    <section class="original-link">
-      <a [href]="news.url" target="_blank" rel="noopener">
-        Open original article
-      </a>
-    </section>
+    @if (news.content) {
+      <section class="full-article">
+        <h2>Full article</h2>
+        <p>{{ news.content }}</p>
+      </section>
+    } @else {
+      <section class="original-link">
+        <a [href]="news.url" target="_blank" rel="noopener">
+          Open original article
+        </a>
+      </section>
+    }
+
   </article>
 } @else {
   <p>News item not found.</p>

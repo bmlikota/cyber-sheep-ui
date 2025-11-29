@@ -17,6 +17,8 @@ const MOCK_NEWS: News[] = [
     relevanceScore: 0.92,
     confidenceScore: 0.88,
     isRead: false,
+    content:
+      'Security researchers have uncovered a coordinated phishing campaign targeting customers of multiple European banks. The attackers use lookalike domains, cloned login pages, and MFA fatigue attacks to trick users into approving fraudulent sessions. The campaign has been active since early November and appears to be operated by a well-funded group with access to initial access brokers and bulletproof hosting…',
   },
   {
     id: '2',
@@ -30,6 +32,22 @@ const MOCK_NEWS: News[] = [
     relevanceScore: 0.97,
     confidenceScore: 0.93,
     isRead: false,
+    content:
+      'The newly observed malware variant, dubbed “LoLTrojan”, relies heavily on living-off-the-land techniques. Instead of dropping obvious binaries, it chains together signed Windows utilities such as regsvr32, rundll32, and wmic to download, execute, and persist. Because the behavior closely mimics legitimate admin activity, many EDR tools fail to flag it unless advanced behavior analytics are enabled…',
+  },
+  {
+    id: '3',
+    title: 'Critical Zero-Day in Popular VPN Appliance Under Active Exploitation',
+    source: 'The Hacker News',
+    url: 'https://thehackernews.com/...',
+    publishedAt: '2025-11-29T07:45:00Z',
+    categories: ['Vulnerability', 'Malware'],
+    summary:
+      'Vendors have confirmed a zero‑day vulnerability in a widely used VPN appliance that is being actively exploited in the wild to gain initial access to corporate networks.',
+    relevanceScore: 0.89,
+    confidenceScore: 0.75,
+    isRead: false,
+    // content intentionally omitted to trigger fallback link in NewsDetail
   },
 ];
 
