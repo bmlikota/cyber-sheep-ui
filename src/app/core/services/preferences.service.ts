@@ -1,12 +1,5 @@
 import { Injectable, signal, computed } from '@angular/core';
-
-export type NewsCategory =
-  | 'Malware'
-  | 'Phishing'
-  | 'Social Networks'
-  | 'AI Agents'
-  | 'Cloud'
-  | 'Other';
+import { NewsCategory } from '../models/news';
 
 export interface UserPreferences {
   selectedCategories: NewsCategory[];
@@ -21,6 +14,9 @@ const ALL_CATEGORIES: NewsCategory[] = [
   'AI Agents',
   'Cloud',
   'Other',
+  'Banking',
+  'Endpoint',
+  'Vulnerability',
 ];
 
 @Injectable({ providedIn: 'root' })

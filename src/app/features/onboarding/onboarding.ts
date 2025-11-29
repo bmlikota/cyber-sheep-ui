@@ -6,10 +6,8 @@ import {
   ReactiveFormsModule,
   FormArray,
 } from '@angular/forms';
-import {
-  PreferencesService,
-  NewsCategory,
-} from '../../core/services/preferences.service';
+import { PreferencesService } from '../../core/services/preferences.service';
+import { NewsCategory } from '../../core/models/news';
 
 @Component({
   selector: 'app-onboarding',
