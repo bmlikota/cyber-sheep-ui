@@ -1,8 +1,66 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { delay } from 'rxjs/operators';
 import { News } from '../models/news';
+import { map } from 'rxjs/operators';
+import { catchError } from 'rxjs/operators';
+
+const API_BASE_URL = 'https://charita-uncurried-everly.ngrok-free.dev';
+
+function mapArticleToNews(article: Article): News {
+  // Map categories, falling back to [] if undefined
+  const categories = (article.categories ?? []) as News['categories'];
+
+  // Use backend summary or fallback to description/content
+  const summary =
+    article.summary ||
+    article.description ||
+    (article.content ? article.content.slice(0, 300) + '…' : '');
+
+  // Temporary scores: until backend exposes its own, we use simple defaults
+  const relevanceScore = 1;     // 1.0 for "plain list" results
+  const confidenceScore = 0.8;  // assume reasonably high confidence
+
+  return {
+    id: article.id,
+    title: article.title,
+    source: article.source || 'The Hacker News',
+    url: article.link,
+    publishedAt: article.pubDate,
+    categories,
+    summary,
+    relevanceScore,
+    confidenceScore,
+    isRead: false,
+    content: article.content ?? undefined,
+  };
+}
+
+interface Article {
+  id: string;
+  title: string;
+  link: string;
+  description?: string | null;
+  summary?: string | null;
+  content?: string | null;
+  pubDate: string;
+  author?: string | null;
+  source: string;           // "thehackernews"
+  categories?: string[];    // e.g. ["Security", "Vulnerability"]
+  score?: number | null;
+  comments?: number | null;
+}
+
+interface ArticlesResponse {
+  success: boolean;
+  count: number;
+  articles: Article[];
+}
+
+interface ArticleByIdResponse {
+  success: boolean;
+  article: Article;
+}
 
 const MOCK_NEWS: News[] = [
   {
@@ -56,15 +114,33 @@ export class NewsService {
   // Later we’ll use this.http for real API calls
   constructor(private readonly http: HttpClient) {}
 
-  // Main method dashboard will use
   getNews(): Observable<News[]> {
-    // TODO (future): return this.http.get<News[]>(`/api/news`);
-    return of(MOCK_NEWS).pipe(delay(300)); // simulate network latency
+    const params = {
+      limit: 30,
+      source: 'thehackernews',
+      fetchFullContent: false, // set true if you want full article bodies for all
+    };
+
+    return this.http
+      .get<ArticlesResponse>(`${API_BASE_URL}/api/articles`, { params })
+      .pipe(
+        map(res => (res.articles ?? []).map(mapArticleToNews)),
+        // optional: fallback to mock data on error
+        catchError(() => of(MOCK_NEWS)),
+      );
   }
 
   getNewsById(id: string): Observable<News | undefined> {
-    // TODO (future): return this.http.get<News>(`/api/news/${id}`);
-    const item = MOCK_NEWS.find(n => n.id === id);
-    return of(item).pipe(delay(150));
+    const params = {
+      fetchFullContent: true, // for detail page show full content
+    };
+
+    return this.http
+      .get<ArticleByIdResponse>(`${API_BASE_URL}/api/articles/${encodeURIComponent(id)}`, { params })
+      .pipe(
+        map(res => (res.success && res.article ? mapArticleToNews(res.article) : undefined)),
+        // optional fallback:
+        catchError(() => of(undefined)),
+      );
   }
 }
